@@ -4,6 +4,21 @@ from sklearn.preprocessing import Imputer
 import matplotlib.pyplot as plt
 from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
+from math import sqrt
+import csv
+import pymysql
+import pandas as pd #Python tool for data manipulation and analysis. The two primary data structures are Series and DataFrame
+import numpy as np
+myConnection = pymysql.connect(host='bk3015.mysql.pythonanywhere-services.com',
+                               user='bk3015',
+                               passwd='los12345',
+                               db='bk3015$los')
+cur = myConnection.cursor()
+cur.execute("SELECT * FROM patients")
+myres = cur.fetchall()
+labels = [x[0] for x in cur.description]
+patients = pd.DataFrame(list(myres), columns = labels)
+patients.to_csv('patients.csv')
 
 data = pd.read_csv('patients.csv', index_col=0, na_values=(" ","  ","   ","    ","     "), low_memory=False)
 data.columns = data.columns.str.strip()
@@ -94,12 +109,63 @@ regr.fit(X_train, y1_train)
 y1_pred = regr.predict(X_test)
 
 
-#play = [ 0.0, 0.848897, 2.3181170, 0]
-#this is to test play must be numerical
-#play = ["Medicare", "WHITE", "ENGL", "MARRIED"]
+# The coefficients
+#print('Coefficients: \n', regr.coef_)
+# The mean squared error
 
-play[0] = ins_dict[play[0]]
-play[1] = race_dict[play[1]]
-play[2] = lang_dict[play[2]]
-play[3] = mar_dict[play[3]]
-q = regr.predict(np.array( [play,]))
+# Explained variance score: 1 is perfect prediction
+#print('Variance score: %.2f' % r2_score(y1_test, y1_pred))
+
+#Print the intercept and coefficients of the resulting model.
+#print (regr.intercept_)
+#print (regr.coef_)
+
+
+#print("Mean squared error: %.2f" % mean_squared_error(y1_test, y1_pred))
+#print("root mean squared error: %.2f" % sqrt(mean_squared_error(y1_test, y1_pred)))
+
+
+enum_list = []
+a = ['PATIENT_ID', 'INSURANCE', 'RACE', 'LANGUAGE', 'MARITAL', 'LOS']
+counter = 5957
+for i in lang_type:
+    for j in race_type:
+        for m in ins_type:
+            for n in mar_type:
+                d = dict.fromkeys(a, 0)
+                d['PATIENT_ID'] = counter
+                d['INSURANCE'] = m
+                d['RACE'] = j
+                d['LANGUAGE'] = i
+                d['MARITAL'] = n
+                d['LOS'] = 0
+                enum_list.append(d)
+                counter+=1
+                
+mat = []
+for i in enum_list:
+    
+    lst = []
+    lst = [None] * 4
+    play=list(i.values())
+    lst[0] = ins_dict[play[1]] 
+    lst[1] = race_dict[play[2]] 
+    lst[2] = lang_dict[play[3]]
+    lst[3] = mar_dict[play[4]]
+    mat.append(lst)
+
+q = regr.predict(np.array(mat))
+for i in range(len(enum_list)):
+    enum_list[i]['LOS'] = q[i]
+    
+
+
+
+toCSV = enum_list
+keys = a
+with open('people.csv', 'w') as output_file:
+    dict_writer = csv.DictWriter(output_file, keys)
+    dict_writer.writeheader()
+    dict_writer.writerows(toCSV)
+
+

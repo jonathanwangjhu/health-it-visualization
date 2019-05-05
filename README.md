@@ -27,7 +27,6 @@ Login information for example app:
 
 At the top of the GitHub project, replace the one-line description (i.e., replace "final-xxxx created by GitHub Classroom")
 
-At the top of the GitHub project, add a website link to your final work so people can access it directly from the CS.601.265 GitHub page.
 
 ## Design details
 
@@ -35,7 +34,7 @@ At the top of the GitHub project, add a website link to your final work so peopl
 
 The original storyboard design, as shown below, includes the usage of a drop down menu in order to select Insurance or Race as the group to graph on the X-axis. However, we had difficuly implementing this. Consequently, we included the drop down menu as an option to visualize what our intended design should have been. The actual functaionality is in an html table that lets the user select the desired group to graph. 
 
-![](StoryboardUpdate.jpeg?raw=true)
+![](NewStoryboard.jpeg?raw=true)
 
 ### Database and data description
 
@@ -43,16 +42,46 @@ The data that we are primarily interested in is as follows: race, insurance, and
 
 ### MIMIC-III Query
 
-SELECT p.subject_id, p.insurance, p.ethnicity, p.language, p.marital_status,  ROUND((cast(p.dischtime as  date) - cast(p.admittime as data)),2) AS length_of_stay
-FROM admissions p
+CREATE TABLE patients (<br/>
+    &nbsp;&nbsp;PATIENT_ID INT,<br/>
+    &nbsp;&nbsp;INSURANCE VARCHAR(255),<br/>
+    &nbsp;&nbsp;RACE VARCHAR(255),<br/>
+    &nbsp;&nbsp;LANGUAGE VARCHAR(255),<br/>
+    &nbsp;&nbsp;MARITAL VARCHAR(255),<br/>
+    &nbsp;&nbsp;LOS INT,<br/>
+    &nbsp;&nbsp;PRIMARY KEY (PATIENT_ID)<br/>
+);<br/>
+
+LOAD DATA LOCAL INFILE '/home/bk3015/TABLE_LOS.csv'<br/>
+INTO TABLE patients<br/>
+FIELDS TERMINATED BY ','<br/>
+LINES TERMINATED BY '\n'<br/>
+IGNORE 1 ROWS<br/>
+(PATIENT_ID, INSURANCE, RACE, LANGUAGE, MARITAL, LOS);<br/>
+
 
 ### Database setup description 
+We access the database and perform the above queries using the following code:
+
+import mysql.connector
+
+mydb = mysql.connector.connect(
+  host='bk3015.mysql.pythonanywhere-services.com',
+  user='bk3015',
+  passwd='los12345',
+  database='bk3015$los'
+)
+
+mycursor = mydb.cursor()
+
+mycursor.execute("SELECT * FROM patients")
+
+myresult = mycursor.fetchall()
 
 
 ### Learning algorithm description
 
-Include:
-* 2-4 sentences describing the learning algorithm.
+We are using linear regression to predict the length of stay in a hospital. The features we have selected for this prediction problem are Race, Insurance, Marital Status and Language. 
 
 ### Interaction
 
@@ -60,15 +89,7 @@ The webapp will show a screen with a graph, with a few buttons on the top. The b
 
 ## Development Process
   
-Elif Bilgin: Set up visualization graph, deployment
-
-David Francisco: Set up visualization graph, drop down menu option, deployment
-
-Ben Karyo: Storyboarding, SQL queries
-
-Jonathan Wang: Storyboarding, SQL queries, deployment
-
-We spent around 4-5 days developing our app, as we didn't have a lot of experience with Flask and HTML. So a large portion of our time went into educating ourselves with the tech we were using, as well as creating the storyboard. The aspect that took the most time was understanding how the python scripts and the HTML scripts interacted with each other, to build on the initial example project provided. We were able to get our visualization working locally, but once we tried to deploy, the actual image of the plot itself wouldn't show up. We suspect this being due to pythonanywhere not liking relative pathnames, but we couldn't come up with a solution to be able to dynamically generate filenames and serve them live. Our code builds on the code provided by Prof. Taylor and Prof. Shpitser. 
+Our code builds on the code on bokeh github visualization example--crossfilter. 
 
   
 ## Data Source Acknowledgement
