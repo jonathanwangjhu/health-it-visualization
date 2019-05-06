@@ -12,7 +12,7 @@ from flask import Flask, render_template
 
 df = pd.read_csv('./TABLE_LOS.csv')
 
-df2 = pd.read_csv('./people.csv')
+df2 = pd.read_csv('./knn_people.csv')
 
 SIZES = list(range(6, 22, 3))
 COLORS = Spectral5
